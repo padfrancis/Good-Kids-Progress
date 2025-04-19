@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOOD KIDS - Parent Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f4f9;
+        }
+
+        .navbar {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            font-size: 1.5rem;
+        }
+
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 5rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .search-container {
+            margin-bottom: 2rem;
+        }
+
+        .progress-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .progress-table th,
+        .progress-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .progress-table th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            display: none;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 1rem;
+                padding: 0 0.5rem;
+            }
+
+            .progress-table {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="navbar" style="display: none;">
+        <h1>GOOD KIDS</h1>
+        <div>
+            <span id="userEmail"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="login-container" id="loginContainer">
+        <h2>Parent Login</h2>
+        <div class="input-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" required>
+        </div>
+        <button onclick="login()">Login</button>
+        <p id="errorMessage" style="color: red; margin-top: 1rem; display: none;"></p>
+    </div>
+
+    <div class="container" id="mainContainer" style="display: none;">
+        <div class="search-container">
+            <div class="input-group">
+                <label for="username">Child's Username</label>
+                <input type="text" id="username" placeholder="Enter username">
+            </div>
+            <div class="input-group" id="difficultyContainer" style="display: none;">
+                <label for="difficulty">Select Difficulty</label>
+                <select id="difficulty" onchange="fetchProgress()">
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">Loading...</div>
+        <div class="no-data" id="noData" style="display: none;">No data found for this difficulty</div>
+        <table class="progress-table" id="progressTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Level Name</th>
+                    <th>Score</th>
+                    <th>Choices Made</th>
+                    <th>Completed</th>
+                </tr>
+            </thead>
+            <tbody id="progressBody"></tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        // Firebase configuration (replace with your config)
+        const firebaseConfig = 
+        {
+        apiKey: "AIzaSyCXdELMAL0kzwrE-hmGQzIztIrR6zjxXug",
+        authDomain: "good-kids-80534.firebaseapp.com",
+        databaseURL: "https://good-kids-80534-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "good-kids-80534",
+        storageBucket: "good-kids-80534.firebasestorage.app",
+        messagingSenderId: "948203176775",
+        appId: "1:948203176775:web:7d692507912541fa81c262",
+        measurementId: "G-G3JL5T9KB0"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+
+        // Make functions globally accessible if called by onclick attributes
+        window.login = login;
+        window.logout = logout;
+        window.fetchProgress = fetchProgress; // If difficulty onchange calls it directly
+
+        // Login function
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.style.display = 'none'; // Hide previous errors
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in
+                    document.getElementById('loginContainer').style.display = 'none';
+                    document.getElementById('mainContainer').style.display = 'block';
+                    document.getElementById('navbar').style.display = 'flex';
+                    document.getElementById('userEmail').textContent = userCredential.user.email;
+                })
+                .catch((error) => {
+                    errorMessage.textContent = error.message;
+                    errorMessage.style.display = 'block';
+                });
+        }
+
+        // Logout function
+        function logout() {
+            signOut(auth).then(() => {
+                // Sign-out successful.
+                document.getElementById('loginContainer').style.display = 'block';
+                document.getElementById('mainContainer').style.display = 'none';
+                document.getElementById('navbar').style.display = 'none';
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('username').value = ''; // Clear username on logout
+                document.getElementById('difficultyContainer').style.display = 'none'; // Hide difficulty
+                document.getElementById('progressTable').style.display = 'none'; // Hide table
+                document.getElementById('noData').style.display = 'none'; // Hide no data message
+                document.getElementById('progressBody').innerHTML = ''; // Clear table body
+            }).catch((error) => {
+                // An error happened.
+                console.error("Logout Error:", error);
+            });
+        }
+
+        // Username search and progress fetch
+        document.getElementById('username').addEventListener('input', function() {
+            const username = this.value.trim();
+            if (username) {
+                checkUsername(username);
+            } else {
+                document.getElementById('difficultyContainer').style.display = 'none';
+                document.getElementById('progressTable').style.display = 'none';
+                document.getElementById('noData').style.display = 'none';
+                document.getElementById('progressBody').innerHTML = ''; // Clear table if username is cleared
+            }
+        });
+
+        async function checkUsername(username) {
+            const userRef = ref(database, 'users/' + username);
+            try {
+                const snapshot = await get(userRef);
+                if (snapshot.exists()) {
+                    document.getElementById('difficultyContainer').style.display = 'block';
+                    fetchProgress(); // Fetch progress for the default difficulty
+                } else {
+                    document.getElementById('difficultyContainer').style.display = 'none';
+                    document.getElementById('progressTable').style.display = 'none';
+                    document.getElementById('noData').style.display = 'block';
+                    document.getElementById('noData').textContent = 'Username not found';
+                    document.getElementById('progressBody').innerHTML = ''; // Clear table
+                }
+            } catch (error) {
+                console.error("Error checking username:", error);
+                document.getElementById('difficultyContainer').style.display = 'none';
+                document.getElementById('progressTable').style.display = 'none';
+                document.getElementById('noData').style.display = 'block';
+                document.getElementById('noData').textContent = 'Error checking username';
+            }
+        }
+
+        async function fetchProgress() {
+            const username = document.getElementById('username').value.trim();
+            if (!username) return; // Don't fetch if username is empty
+
+            const difficulty = document.getElementById('difficulty').value;
+            const progressBody = document.getElementById('progressBody');
+            const loading = document.getElementById('loading');
+            const noData = document.getElementById('noData');
+            const progressTable = document.getElementById('progressTable');
+
+            loading.style.display = 'block';
+            progressTable.style.display = 'none';
+            noData.style.display = 'none';
+            progressBody.innerHTML = ''; // Clear previous results
+
+            const progressRef = ref(database, `users/${username}/progress/${difficulty}`);
+            try {
+                const snapshot = await get(progressRef);
+                loading.style.display = 'none';
+                const data = snapshot.val();
+
+                if (data && Object.keys(data).length > 0) {
+                    progressTable.style.display = 'table';
+                    Object.keys(data).forEach((level) => {
+                        const levelData = data[level] || {}; // Default to empty object if level data is null
+                        const levelName = levelData.levelName || 'N/A';
+                        const score = levelData.score !== undefined ? levelData.score : 'N/A';
+                        // Ensure choicesMade is an array before joining, default to 'N/A' if not or empty
+                        const choicesMade = Array.isArray(levelData.choicesMade) && levelData.choicesMade.length > 0
+                                            ? levelData.choicesMade.join(', ')
+                                            : 'N/A';
+                        const completed = levelData.completed ? 'Yes' : 'No';
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${levelName}</td>
+                            <td>${score}</td>
+                            <td>${choicesMade}</td>
+                            <td>${completed}</td>
+                        `;
+                        progressBody.appendChild(row);
+                    });
+                } else {
+                    noData.style.display = 'block';
+                    noData.textContent = 'No progress data found for this difficulty';
+                }
+            } catch (error) {
+                console.error("Error fetching progress:", error);
+                loading.style.display = 'none';
+                noData.style.display = 'block';
+                noData.textContent = 'Error fetching data';
+            }
+        }
+
+        // Check auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'block';
+                document.getElementById('navbar').style.display = 'flex';
+                document.getElementById('userEmail').textContent = user.email;
+                // Optionally clear username field or trigger a fetch if needed
+            } else {
+                // User is signed out
+                document.getElementById('loginContainer').style.display = 'block';
+                document.getElementById('mainContainer').style.display = 'none';
+                document.getElementById('navbar').style.display = 'none';
+                 // Clear sensitive data on sign out
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('username').value = '';
+                document.getElementById('difficultyContainer').style.display = 'none';
+                document.getElementById('progressTable').style.display = 'none';
+                document.getElementById('noData').style.display = 'none';
+                document.getElementById('progressBody').innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>
