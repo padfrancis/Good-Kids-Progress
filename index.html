@@ -1,48 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GOOD KIDS - Parent Portal</title>
-  <link rel="stylesheet" href="css/styles.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>GOOD KIDS - Parent Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
+    <header>
+        <div class="navbar">
+          <div class="navbar-left">
+            <img src="assets/logo.png" alt="Good Kids Logo" class="logo" />
+            <h1>GOOD KIDS - Parent Portal</h1>
+          </div>
+          <div class="navbar-right">
+            <span id="greeting"></span>
+            <button id="logout-btn" style="display: none;">Logout</button>
+          </div>
+        </div>
+      </header>
+      
+    
 
-  <header>
-    <img src="assets/logo.png" alt="Good Kids Logo" class="logo" />
-    <h1>GOOD KIDS - Parent Portal</h1>
-    <div id="user-email"></div>
-    <button id="logout-btn" style="display: none;">Logout</button>
-  </header>
+    <main class="container">
+        <!-- Login Section -->
+        <section id="login-section" class="auth-section">
+            <h2>Login</h2>
+            <input type="email" id="email" placeholder="Enter Email" class="input-field" />
+            <input type="password" id="password" placeholder="Enter Password" class="input-field" />
+            <button id="login-btn" class="login-btn">Login</button>
+            <p id="login-error" class="error-message"></p>
+        </section>
 
-  <!-- Login Section -->
-  <section id="login-section">
-    <h2>Login</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button id="login-btn">Login</button>
-    <p id="login-error" class="error"></p>
-  </section>
+        <!-- Dashboard Section -->
+        <section id="dashboard-section" class="dashboard-section" style="display: none;">
+            <h2>User Progress</h2>
 
-  <!-- Dashboard Section -->
-  <section id="dashboard-section" style="display: none;">
-    <h2>Student Progress</h2>
+            <label for="difficulty" class="difficulty-label">Select Difficulty:</label>
+            <select id="difficulty" class="difficulty-select">
+                <option value="">Choose Difficulty</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
 
-    <label for="difficulty">Filter by Difficulty:</label>
-    <select id="difficulty">
-      <option value="">Select Difficulty</option>
-      <option value="Easy">Easy</option>
-      <option value="Medium">Medium</option>
-      <option value="Hard">Hard</option>
-    </select>
+            <div id="loading" class="loading hidden">Loading progress...</div>
+            <div id="no-progress" class="no-progress hidden">No progress found.</div>
 
-    <div id="loading" class="hidden">Loading progress...</div>
-    <div id="no-progress" class="hidden">No progress found.</div>
+            <div id="progress-container" class="progress-container"></div>
+        </section>
+    </main>
 
-    <div id="progress-container"></div>
-  </section>
-
-  <script src="firebase/firebase-config.js"></script>
-  <script src="js/app.js"></script>
+    <script src="firebase/firebase-config.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
