@@ -15,8 +15,7 @@ const progressContainer = document.getElementById("progress-container");
 const loadingIndicator = document.getElementById("loading");
 const noProgressMessage = document.getElementById("no-progress");
 
-logoutBtn.style.display = "none"; // Hide logout initially on page load
-// Allow pressing Enter to trigger login
+logoutBtn.style.display = "none";
 document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && loginSection.style.display !== "none") {
     loginBtn.click();
@@ -45,7 +44,7 @@ loginBtn.addEventListener("click", () => {
     });
 });
 
-// Logout functionality
+
 logoutBtn.addEventListener("click", () => {
   auth.signOut().then(() => {
     loginSection.style.display = "block";
@@ -58,7 +57,6 @@ logoutBtn.addEventListener("click", () => {
   });
 });
 
-// When auth state changes
 auth.onAuthStateChanged(user => {
   if (user) {
     showDashboard();
@@ -98,8 +96,7 @@ difficultySelect.addEventListener("change", () => {
   const difficulty = difficultySelect.value;
   const user = auth.currentUser;
   if (!difficulty || !user) return;
-
-  // Hide "Select Difficulty" option
+  
   const defaultOption = difficultySelect.querySelector("option[value='']");
   if (defaultOption) defaultOption.style.display = "none";
 

@@ -253,7 +253,7 @@ label[for="difficulty"] {
 }
 
 .card p strong {
-    color: #84cc16; /* Light green */
+    color: #84cc16;
     transition: color 0.3s;
 }
 .card:hover p strong {
@@ -272,7 +272,6 @@ label[for="difficulty"] {
     animation: fadeIn 0.7s 0.2s forwards;
 }
 
-/* Hidden Class */
 .hidden {
     display: none;
 }
