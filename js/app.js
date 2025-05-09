@@ -96,7 +96,7 @@ difficultySelect.addEventListener("change", () => {
   const difficulty = difficultySelect.value;
   const user = auth.currentUser;
   if (!difficulty || !user) return;
-  
+
   const defaultOption = difficultySelect.querySelector("option[value='']");
   if (defaultOption) defaultOption.style.display = "none";
 
@@ -131,7 +131,6 @@ difficultySelect.addEventListener("change", () => {
         <strong>Level:</strong> ${level}<br/>
         <strong>Score:</strong> ${details.score || 0}<br/>
         <strong>Choices:</strong> ${choicesHtml}<br/>
-        <strong>Completed:</strong> ${details.completed ? "Yes" : "No"}
       `;
 
       progressContainer.appendChild(card);
